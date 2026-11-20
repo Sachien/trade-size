@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trading Calculator</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 40px;
+        min-height: 100vh;
+        background: #f4f4f4;
+        font-family: Arial, sans-serif;
+      }
+
+      .card {
+        max-width: 520px;
+        margin: auto;
+        padding: 24px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .radio {
+        transform: scale(1.2);
+        cursor: pointer;
+        margin: 0;
+      }
+
+      .hidden-radio {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .label {
+        width: 40px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      input[type='number'],
+      input[type='text'] {
+        flex: 1;
+        padding: 10px;
+        font-size: 16px;
+        width: 100px;
+      }
+
+      button {
+        padding: 10px 14px;
+        font-size: 15px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .copy-btn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      hr {
+        margin: 28px 0;
+        border: none;
+        border-top: 1px solid #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="card">
+      <div class="row">
+        <input
+          class="radio"
+          type="radio"
+          tabindex="-1"
+          id="radioBuy"
+          name="calculate"
+          value="buyPrice"
+        />
+
+        <label class="label" for="radioBuy" id="buyLabel">Buy</label>
+
+        <input type="number" id="buyPrice" step="0.01" />
+        <button
+          type="button"
+          class="copy-btn"
+          tabindex="-1"
+          data-target="buyPrice"
+          title="Copy"
+        >
+          📋
+        </button>
+      </div>
+
+      <div class="row">
+        <input
+          class="radio"
+          type="radio"
+          tabindex="-1"
+          id="radioStop"
+          name="calculate"
+          value="stopLoss"
+        />
+
+        <label class="label" for="radioStop" id="stopLabel">Stop</label>
+
+        <input type="number" id="stopLoss" step="0.01" />
+        <button
+          type="button"
+          class="copy-btn"
+          tabindex="-1"
+          data-target="stopLoss"
+          title="Copy"
+        >
+          📋
+        </button>
+      </div>
+
+      <div class="row">
+        <input
+          class="radio"
+          type="radio"
+          tabindex="-1"
+          id="radioSize"
+          name="calculate"
+          value="sizing"
+          checked
+        />
+
+        <label class="label" for="radioSize">Size</label>
+
+        <input type="number" id="sizing" step="1" />
+        <button
+          type="button"
+          class="copy-btn"
+          tabindex="-1"
+          data-target="sizing"
+          title="Copy"
+        >
+          📋
+        </button>
+      </div>
+
+      <div
+        style="margin: -10px 0 16px 78px; font-size: 12px; color: #666"
+        id="sizeValue"
+      ></div>
+
+      <div class="row">
+        <input
+          class="radio"
+          type="radio"
+          tabindex="-1"
+          id="radioRisk"
+          name="calculate"
+          value="risk"
+        />
+
+        <label class="label" for="radioRisk">Risk</label>
+
+        <input type="number" id="risk" value="15000" step="1" />
+        <button type="button" class="copy-btn" tabindex="-1" data-target="risk" title="Copy">
+          📋
+        </button>
+      </div>
+
+      <div
+        style="margin: -10px 0 16px 78px; font-size: 12px; color: #666"
+        id="riskPercent"
+      ></div>
+
+      <div class="row">
+        <input class="radio hidden-radio" type="radio" tabindex="-1" />
+
+        <label class="label">1R</label>
+
+        <input type="number" id="oneR" step="0.01" />
+        <button type="button" class="copy-btn" tabindex="-1" data-target="oneR" title="Copy">
+          📋
+        </button>
+      </div>
+
+      <hr />
+
+      <div class="row" style="justify-content: flex-end">
+        <label class="checkbox-label">
+          <input type="checkbox" id="shortCheck" />
+          Short
+        </label>
+        <button type="button" id="copy-both-btn2">Copy 2</button>
+        <button type="button" id="copy-both-btn1">Copy 1</button>
+      </div>
+
+      <div class="row">
+        <label class="label">Auto</label>
+
+        <input type="text" id="autoInput" placeholder="L123.23 C129.56" />
+
+        <button type="button" id="pasteBtn">Paste</button>
+      </div>
+    </div>
+
+    <script>
+      const elements = {
+        card: document.getElementById('card'),
+        buy: document.getElementById('buyPrice'),
+        stop: document.getElementById('stopLoss'),
+        size: document.getElementById('sizing'),
+        risk: document.getElementById('risk'),
+        oneR: document.getElementById('oneR'),
+        auto: document.getElementById('autoInput'),
+        paste: document.getElementById('pasteBtn'),
+        sizeValue: document.getElementById('sizeValue'),
+        riskPercent: document.getElementById('riskPercent'),
+        shortCheck: document.getElementById('shortCheck'),
+        buyLabel: document.getElementById('buyLabel'),
+        stopLabel: document.getElementById('stopLabel'),
+      };
+
+      const calculators = document.querySelectorAll('input[name="calculate"]');
+
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      function toNumber(value) {
+        return parseFloat(value);
+      }
+
+      function isValid(...values) {
+        return values.every((value) => !isNaN(value));
+      }
+
+      function selectedCalculation() {
+        return document.querySelector('input[name="calculate"]:checked').value;
+      }
+
+      function formatIndianNumber(value) {
+        return new Intl.NumberFormat('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(value);
+      }
+
+      function updateSizeValue() {
+        const buy = toNumber(elements.buy.value);
+        const size = toNumber(elements.size.value);
+
+        if (!isValid(buy, size)) {
+          elements.sizeValue.textContent = '';
+          return;
+        }
+
+        const total = buy * size;
+
+        elements.sizeValue.textContent = formatIndianNumber(total);
+      }
+
+      function updateRiskPercent() {
+        const buy = toNumber(elements.buy.value);
+        const stop = toNumber(elements.stop.value);
+
+        if (!isValid(buy, stop) || buy === 0) {
+          elements.riskPercent.textContent = '';
+          return;
+        }
+
+        const percent = ((buy - stop) / (elements.shortCheck.checked ? stop : buy)) * 100;
+        elements.riskPercent.textContent = `${percent.toFixed(2)}%`;
+      }
+
+      function updateOneR() {
+        const buy = toNumber(elements.buy.value);
+        const stop = toNumber(elements.stop.value);
+
+        if (!isValid(buy, stop)) {
+          elements.oneR.value = '';
+          return;
+        }
+
+        const isShort = elements.shortCheck.checked;
+        const oneR = isShort ? stop - (buy - stop) : buy + (buy - stop);
+
+        elements.oneR.value = oneR.toFixed(2);
+      }
+
+      function updateTradeLabels() {
+        elements.buyLabel.textContent = elements.shortCheck.checked ? 'Stop' : 'Buy';
+        elements.stopLabel.textContent = elements.shortCheck.checked ? 'Sell' : 'Stop';
+      }
+
+      function calculateRisk(buy, stop, size) {
+        return Math.round(Math.abs(buy - stop) * size);
+      }
+
+      function calculateSize(buy, stop, risk) {
+        return Math.round(risk / Math.abs(buy - stop));
+      }
+
+      function calculateBuy(stop, size, risk) {
+        return (stop + risk / size).toFixed(2);
+      }
+
+      function calculateStop(buy, size, risk) {
+        return (buy - risk / size).toFixed(2);
+      }
+
+      function updateCalculations() {
+        const buy = toNumber(elements.buy.value);
+        const stop = toNumber(elements.stop.value);
+        const size = toNumber(elements.size.value);
+        const risk = toNumber(elements.risk.value);
+
+        switch (selectedCalculation()) {
+          case 'risk':
+            if (isValid(buy, stop, size)) {
+              elements.risk.value = calculateRisk(buy, stop, size);
+            }
+
+            break;
+
+          case 'sizing':
+            if (isValid(buy, stop, risk) && buy !== stop) {
+              elements.size.value = calculateSize(buy, stop, risk);
+            }
+
+            break;
+
+          case 'buyPrice':
+            if (isValid(stop, size, risk) && size !== 0) {
+              elements.buy.value = calculateBuy(stop, size, risk);
+            }
+
+            break;
+
+          case 'stopLoss':
+            if (isValid(buy, size, risk) && size !== 0) {
+              elements.stop.value = calculateStop(buy, size, risk);
+            }
+
+            break;
+        }
+
+        updateOneR();
+        updateSizeValue();
+        updateRiskPercent();
+      }
+
+      function parseAutoText(text) {
+        const lowMatch = text.match(/L\s*([0-9,]*\.?[0-9]+)/i);
+
+        const closeMatch = text.match(/C\s*([0-9,]*\.?[0-9]+)/i);
+
+        if (!lowMatch || !closeMatch) {
+          return null;
+        }
+
+        const stop = parseFloat(lowMatch[1].replace(/,/g, ''));
+        const buy = parseFloat(closeMatch[1].replace(/,/g, ''));
+
+        if (!isValid(stop, buy)) {
+          return null;
+        }
+
+        return { stop, buy };
+      }
+
+      function applyAutoValues() {
+        const parsed = parseAutoText(elements.auto.value || '');
+
+        if (!parsed) {
+          return;
+        }
+
+        elements.stop.value = parsed.stop;
+        elements.buy.value = parsed.buy;
+
+        updateCalculations();
+      }
+
+      async function pasteFromClipboard() {
+        try {
+          const text = await navigator.clipboard.readText();
+
+          elements.auto.value = text;
+
+          applyAutoValues();
+        } catch (error) {
+          console.error('Clipboard read failed', error);
+        }
+      }
+
+      async function copyInputText(targetId) {
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        const value = input.value?.trim();
+        if (!value) return;
+
+        try {
+          await navigator.clipboard.writeText(value);
+        } catch (error) {
+          console.error('Clipboard write failed', error);
+        }
+      }
+
+      function focusBuyOnOutsideTap(event) {
+        const clickedInsideCard = elements.card.contains(event.target);
+
+        const activeElement = document.activeElement;
+
+        const isInputFocused = [
+          elements.buy,
+          elements.stop,
+          elements.size,
+          elements.risk,
+          elements.oneR,
+          elements.auto,
+        ].includes(activeElement);
+
+        if (!clickedInsideCard && !isInputFocused) {
+          elements.buy.focus();
+        }
+      }
+
+      [elements.buy, elements.stop, elements.size, elements.risk].forEach(
+        (input) => {
+          input.addEventListener('input', updateCalculations);
+        }
+      );
+
+      elements.shortCheck.addEventListener('change', () => {
+        updateTradeLabels();
+        updateCalculations();
+      });
+
+      calculators.forEach((radio) => {
+        radio.addEventListener('change', updateCalculations);
+      });
+
+      elements.auto.addEventListener('blur', applyAutoValues);
+
+      elements.paste.addEventListener('click', pasteFromClipboard);
+
+      document.querySelectorAll('.copy-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+          const targetId = button.getAttribute('data-target');
+          copyInputText(targetId);
+        });
+      });
+
+      document
+        .querySelector('#copy-both-btn1')
+        .addEventListener('click', async () => {
+          await copyInputText('oneR');
+          await sleep(300);
+          await copyInputText(
+            elements.shortCheck.checked ? 'buyPrice' : 'stopLoss'
+          );
+        });
+
+      document
+        .querySelector('#copy-both-btn2')
+        .addEventListener('click', async () => {
+          await copyInputText('sizing');
+          await sleep(300);
+          await copyInputText(
+            elements.shortCheck.checked ? 'stopLoss' : 'buyPrice'
+          );
+        });
+
+      document.body.addEventListener('click', focusBuyOnOutsideTap);
+
+      updateTradeLabels();
+      updateCalculations();
+    </script>
+  </body>
+</html>
